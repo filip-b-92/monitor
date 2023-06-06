@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.js"></script>
+		<script src="calculator.js"></script>
+		<script src="logger.js"></script>
+		<style>
+			body{background-color:rgb(41,49,52);color:rgb(224,226,228);}
+				.page{width:90%;max-width:700px;margin:0 auto;}
+					.group {padding: 20px; margin-bottom: 20px; padding-top: 0;}
+						h2{    text-align: center;}
+						.row{height:22px;}	
+							.right{float:right;}	
+								label{width:65px;display:inline-block;text-align: right;}
+								input{}
+
+				.tools{width:90%;max-width:700px;margin:0 auto;}
+			
+		</style>
+	</head>
+	<body>
+		<div class="page">
+
+			
+		</div>
+	</body>
+</html>
+
+<script>
+
+
+	var periods=[
+		{label:"saat",scale:("1 * d.unit * dd.rate() ") ,sufix:"saat" },
+		{label:"den",scale:("8 * d.unit * dd.rate() ") ,sufix:"den" },
+		{label:"nedela",scale:("40 * d.unit * dd.rate()" ) ,sufix:"nedela" },
+		{label:"nedela 30",scale:("30 * d.unit * dd.rate()" ) ,sufix:"nedela" },
+		// {label:"2 nedeli",scale:("80 * d.unit * dd.rate()" ) ,sufix:"2 nedeli" },
+		{label:"3 nedeli",scale:("120 * d.unit * dd.rate() " ) ,sufix:"3 nedeli" },
+		{label:"3 nedeli(30)",scale:("90 * d.unit * dd.rate()" ) ,sufix:"3 nedeli" },
+		{label:"mesec",scale:("(30/7*5 *8 * d.unit) * dd.rate()" ) ,sufix:"mesec" },
+	];
+
+
+
+var settings = 
+{
+	groups : [
+		{
+			name:"monitor 16:9",
+			status : 1,
+			rows:[
+				{type:"group" , group:{
+						name:"inch",
+						updates:["cm","dpi"],
+						rows:[
+							{label:"width",scale:("16 * d.unit") ,sufix:"inch" },
+							{label:"height",scale:("9 * d.unit") ,sufix:"inch" },
+							{label:"diagonal",scale:("18.36 * d.unit" ) ,sufix:"inch" },
+							{label:"space",scale:("16 * d.unit * 9 * d.unit " ) ,sufix:"inch-2" },
+						]
+				}},
+				{type:"group" , group:{
+						name:"cm",
+						updates:["inch","dpi"],
+						rows:[
+							{label:"width",scale:("16 *  2.54 * d.unit") ,sufix:"cm" },
+							{label:"height",scale:("9* 2.54 * d.unit") ,sufix:"cm" },
+							{label:"diagonal",scale:("18.36 * 2.54 * d.unit") ,sufix:"cm" },	
+							{label:"space",scale:("16* 2.54 * d.unit * 9* 2.54 * d.unit" ) ,sufix:"cm-2" },
+						]
+				}},
+				{type:"group" , group:{
+						name:"resolution",
+						updates:["dpi"],
+						rows:[
+							{label:"resolution_x", scale:("16 * d.unit"), sufix:"px" },
+							{label:"resolution_y", scale:("9 * d.unit"),sufix:"px" },
+							{label:"total_px_count",scale:("(16 * d.unit)*9*d.unit") ,sufix:"px" },	
+						]
+				}},
+				{type:"group" , group:{
+						name:"dpi",
+						depends:{
+							"inch_w":function(){ return $(".group.inch input.width").val()},
+							"inch_h":function(){ return $(".group.inch input.height").val()},
+							"inch_space":function(){ return $(".group.inch input.space").val()},
+
+							"cm_w":function(){ return $(".group.cm input.width").val()},
+							"cm_h":function(){ return $(".group.cm input.height").val()},
+							"cm_space":function(){ return $(".group.cm input.space").val()},
+
+							"resolution_x":function(){ return $(".group.resolution input.resolution_x").val()},
+							"resolution_y":function(){ return $(".group.resolution input.resolution_y").val()},
+							"total_px_count":function(){ return $(".group.resolution input.total_px_count ").val()},	
+
+						},
+						rows:[
+							{label:"dpi_w", scale:("dd.resolution_x() / dd.inch_w()"), sufix:"px" },
+							{label:"dpi_y", scale:("dd.resolution_y() / dd.inch_h()"),sufix:"px" },
+							{label:"dpi", scale:("dd.total_px_count() / dd.inch_space()") ,sufix:"px" },
+							{type:"empty"},
+							{label:"dpc_w", scale:("dd.resolution_x() / dd.cm_w()"), sufix:"px" },
+							{label:"dpc_y", scale:("dd.resolution_y() / dd.cm_h()"),sufix:"px" },
+							{label:"dpc", scale:("dd.total_px_count() / dd.cm_space()") ,sufix:"px" },	
+								
+							{type:"empty"},
+							
+							{label:"px_size", scale:("dd.inch_w() / dd.resolution_x()") ,sufix:"inch" },
+							{label:"px_size_square", scale:("dd.inch_space() / dd.total_px_count()") ,sufix:"inch" },	
+							
+							{type:"empty"},
+							
+							{label:"px_size", scale:("dd.cm_w() / dd.resolution_x()") ,sufix:"cm" },	
+							{label:"px_size_square", scale:("dd.cm_space() / dd.total_px_count()") ,sufix:"cm-2" },	
+						]
+				}},
+			]
+		},
+		{
+			status : 0,
+			require: "",
+			name:"conversion",
+			rows:[
+				{type:"group" , "group":{
+						name:"in-usd",
+						rows:[
+							{label:"eth",scale:('checkPrice("eth","usd")') ,sufix:"usd" },  
+							{label:"ltc",scale:('checkPrice("ltc","usd")') ,sufix:"usd" },  
+							{label:"btc",scale:('checkPrice("btc","usd")') ,sufix:"usd" },  
+							{label:"xrp",scale:('checkPrice("xrp","usd")') ,sufix:"usd" },  
+							{label:"xmr",scale:('checkPrice("xmr","usd")') ,sufix:"usd" },  
+							{label:"zec",scale:('checkPrice("zec","usd")') ,sufix:"usd" },  
+							{label:"dash",scale:('checkPrice("dash","usd")') ,sufix:"usd" },
+						]
+				}},
+				{type:"group" , "group":{
+						name:"in-eth",
+						rows:[
+							{label:"usd",scale:('checkPrice("usd","eth")') ,sufix:"eth" },  
+							{label:"btc",scale:('checkPrice("btc","eth")') ,sufix:"eth" },  
+							{label:"ltc",scale:('checkPrice("ltc","eth")') ,sufix:"eth" },  
+							{label:"xrp",scale:('checkPrice("xrp","eth")') ,sufix:"eth" },  
+							{label:"xmr",scale:('checkPrice("xmr","eth")') ,sufix:"eth" },  
+							{label:"zec",scale:('checkPrice("zec","eth")') ,sufix:"eth" },  
+							{label:"dash",scale:('checkPrice("dash","eth")') ,sufix:"eth" },
+						]
+				}},
+				{type:"group" , "group":{
+						name:"in-btc",
+						rows:[
+							{label:"usd",scale:('checkPrice("usd","btc")') ,sufix:"btc" },  
+							{label:"eth",scale:('checkPrice("eth","btc")') ,sufix:"btc" },  
+							{label:"ltc",scale:('checkPrice("ltc","btc")') ,sufix:"btc" },  
+							{label:"xrp",scale:('checkPrice("xrp","btc")') ,sufix:"btc" },  
+							{label:"xmr",scale:('checkPrice("xmr","btc")') ,sufix:"btc" },  
+							{label:"zec",scale:('checkPrice("zec","btc")') ,sufix:"btc" },  
+							{label:"dash",scale:('checkPrice("dash","btc")') ,sufix:"btc" },
+						]
+				}},
+				
+			]
+		},
+		{
+			status : 0,
+			require: "",
+			name:"ppg password generator",
+			rows:[
+				{type:"group" , "group":{
+						name:"md5",
+						rows:[
+							{label:"password",scale:('return 123123;') ,sufix:"pass" },  
+							{label:"salt",scale:('') ,sufix:"salt" },  
+							{label:"hash",scale:('') ,sufix:"hash" },  
+	
+
+						]
+				}},
+				
+			]
+		},		
+	
+		{
+			name: "plata",
+			status:1,
+			rows:[
+
+				{type:"group" , group:{
+						name:"rates",
+						updates:[ "denari", "dolari" ,  "evra", "bitcoini"],
+						rows:[
+							{label:"dolar",type:"static" , sufix:"dolar" },
+							{label:"denar",type:"static"  , sufix:"denar" },
+							{label:"evro" ,type:"static",   sufix:"evro" },
+							{label:"bitcoin" ,type:"static",  sufix:"bitcoin" },
+
+							{label:"dolar per hour",scale:("d.unit")  ,sufix:"unit" },
+						]
+				}},
+
+				{type:"group" , group:{
+						name:"dolari",
+						updates:[ "denari", "dolari" ,  "evra", "bitcoini"],
+						depends:{
+							"rate":function(){ return $(".group.rates input.dolar").val()},
+						},	
+						rows:periods
+
+				}},
+				{type:"group" , group:{
+						name:"denari",
+						depends:{
+							"rate":function(){ return $(".group.rates input.denar").val()},
+						},				
+						updates:[ "denari", "dolari" ,  "evra", "bitcoini"],
+						rows:periods
+				}},
+				{type:"group" , group:{
+						name:"evra",
+						depends:{
+							"rate":function(){ return $(".group.rates input.evro").val()},
+						},				
+						updates:[ "denari", "dolari" ,  "evra", "bitcoini"],
+						rows:periods
+
+				}},		
+				{type:"group" , group:{
+						name:"bitcoini",
+						depends:{
+							"rate":function(){ return $(".group.rates input.bitcoin").val()},
+						},				
+						updates:[ "denari", "dolari" ,  "evra", "bitcoini"],
+
+						rows:periods
+				}},							
+			],
+			
+			
+		},
+	],
+	
+	debugging: {
+
+		"logging" : 0,
+		"loggingCollapsed" : 0,
+		"testing" : 1,
+		"toolbox" : 1,
+		"showTrace":0
+	}
+	
+};
+
+
+
+	var prices = {};
+	
+	
+	
+	checkPrice = function(code,code2){
+		var result ;
+		if(typeof prices[code] != "undefined" && typeof prices[code][code2] != "undefined" ){
+			return prices[code][code2];
+		}
+		var url = "https://api.cryptonator.com/api/ticker/"+code+"-"+code2;
+		
+		$.ajax({
+			dataType: "json",
+			url: url,
+			// data: data, 
+			async: false, 
+			success: function(json) {
+				result = (json.ticker.price);
+			}
+		});
+		
+		if(typeof prices[code] == "undefined" ){
+			prices[code] = { };
+			prices[code][code2] = result ;
+			
+		}
+		return result;
+	}
+
+</script>
